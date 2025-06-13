@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,13 +9,15 @@
     body {
       background: #222;
       margin: 0;
-      padding: 0 70px; /* Padding only around the screen edge */
+      padding: 0 70px;
+      color: white;
+      font-family: sans-serif;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px; /* Small gap between images */
+      gap: 16px;
     }
 
     @media (min-width: 1000px) {
@@ -22,95 +25,170 @@
         grid-template-columns: repeat(3, 1fr);
       }
     }
-   
 
-    a img {
-      width: 100%;
-      height: auto; /* Maintain aspect ratio */
+    .item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item a img {
+      width: 90%;
+      height: auto;
       display: block;
     }
-    @media(max-width:1000px){
-       body{
-      padding:0;
+
+    .tags {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
     }
+
+    .tags a {
+      background: #444;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #eee;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .tags a:hover {
+      background: #666;
+    }
+
+    @media (max-width: 1000px) {
+      body {
+        padding: 0;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="grid">
-  
-    <a href="https://drive.google.com/open?id=1ib_4kg4iidCcFmuh-cfzFN21CMxhqAn1&usp=drive_copy">
-      <img src="MorningPose.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1isGXWLay4Kqbd9sariV2B22fd-x8gfN1&usp=drive_copy">
-      <img src="MereFlow.jpg" alt="" />
-    </a>
-     <a href=" https://drive.google.com/open?id=1H5OifADZzaYoA_MOY8qCkJ-nInYaipAe&usp=drive_copy">
-      <img src="LungesQuads.jpg" alt="" />
-    </a>
 
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1ib_4kg4iidCcFmuh-cfzFN21CMxhqAn1&usp=drive_copy">
+        <img src="MorningPose.jpg" alt="" />
+      </a>
+      <div class="tags">
+      
+      </div>
+    </div>
 
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1isGXWLay4Kqbd9sariV2B22fd-x8gfN1&usp=drive_copy">
+        <img src="MereFlow.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="https://drive.google.com/open?id=1h49OzO9amDynnt9vARiarqk6rfHEFX8v&usp=drive_copy
+        ">Mere Warrior</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1H5OifADZzaYoA_MOY8qCkJ-nInYaipAe&usp=drive_copy">
+        <img src="LungesQuads.jpg" alt="" />
+      </a>
+      <div class="tags">
+        
+      </div>
+    </div>
+
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1CjoLt-7aOTkaWzyvZlP7hZqx8WmENOQn&usp=drive_copy">
+        <img src="ProneSupine.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="https://drive.google.com/open?id=1gXq5bV4x7FRH3rOrHrQR28oxpBbZmIrv&usp=drive_copy">
+         Easy Hero
+          </a>
+          <a href="https://drive.google.com/open?id=1LlAMzhQrfE_GU-fkLKZRwZTRVLH5f423&usp=drive_copy">
+            Cobbler</a>
+            <a href ="https://drive.google.com/open?id=1Pkgkt0saY9iKY22O5GQ2R7QmNn4zbRw5&usp=drive_copy"> Chill</a>
+
+      </div>
+    </div>
+
+ 
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1_MJB4nid94KKT3olo-K3wEoBtGvSAnlj&usp=drive_copy">
+        <img src="Legs.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="https://drive.google.com/open?id=1xfI4OtIm8e9IAaH9yTKXC-eRTN1CzGT8&usp=drive_copy">
+         Easy Legs
+          </a>
+      </div>
+    </div>
+
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1cJpb9UctZ5mvkezXHEM9--RkRuZRHPXm&usp=drive_copy">
+        <img src="Supine.jpg" alt="" />
+      </a>
+      <div class="tags">
     
-    <a href="https://drive.google.com/open?id=1CjoLt-7aOTkaWzyvZlP7hZqx8WmENOQn&usp=drive_copy">
-      <img src="ProneSupine.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1gXq5bV4x7FRH3rOrHrQR28oxpBbZmIrv&usp=drive_copy">
-      <img src="EasyHero.jpg" alt="" />
-    </a>
-      <a href="https://drive.google.com/open?id=1LlAMzhQrfE_GU-fkLKZRwZTRVLH5f423&usp=drive_copy">
-      <img src="CowCobbler.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1IImugSCDFYf7YQljzDM5K9_bfvCfohdy&usp=drive_copy">
-      <img src="EasyLegs.jpg" alt="" />
-    </a>
-  
+      </div>
+    </div>
 
-
-  
-    <a href="https://drive.google.com/open?id=1SIRW25CTRF7UcjNnXQ_uhEpuaY25AUe_&usp=drive_copy">
-      <img src="TableDog.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1kEw2iVlz1m08cE0DIG6oJ5p6e1wgcOUO&usp=drive_copy">
-      <img src="PronetableStand.jpg" alt="" />
-    </a>
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1SIRW25CTRF7UcjNnXQ_uhEpuaY25AUe_&usp=drive_copy">
+        <img src="TableDog.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="https://drive.google.com/open?id=1kEw2iVlz1m08cE0DIG6oJ5p6e1wgcOUO&usp=drive_copy">
+          Prone Table
+          </a>
      
-   
-<!--     
-    <a href="https://drive.google.com/open?id=1SyeB3pYJMEKuU3R0wcI0USGBySZ4M0Hh&usp=drive_copy">
-      <img src="HeroFeet.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1faJCCzmburn-ajvtXsFfPnVdcIjbOiG5&usp=drive_copy">
-      <img src="HeroBackS.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1-Xmkpht0H3PFVxhbwccQv3bvieDNsH3Z&usp=drive_copy">
-      <img src="SupineStaff.jpg" alt="" />
-    </a>
-    <a href="https://drive.google.com/open?id=1pr1c58AEd1MA4uuXehp9ME8rwiH36dIN&usp=drive_copy">
-      <img src="FullBack.jpg" alt="" />
-    </a> -->
+      </div>
+    </div>
 
+  
 
+    <!-- <div class="item">
+      <a href="https://drive.google.com/open?id=1SyeB3pYJMEKuU3R0wcI0USGBySZ4M0Hh&usp=drive_copy">
+        <img src="HeroFeet.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="#">Feet</a>
+        <a href="#">Hero</a>
+      </div>
+    </div>
 
-    <!-- <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a>
-    <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a>
-    <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a>
-    <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a>
-     <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a>
-    <a href="">
-      <img src="FullBack.jpg" alt="" />
-    </a> -->
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1faJCCzmburn-ajvtXsFfPnVdcIjbOiG5&usp=drive_copy">
+        <img src="HeroBackS.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="#">Back</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1-Xmkpht0H3PFVxhbwccQv3bvieDNsH3Z&usp=drive_copy">
+        <img src="SupineStaff.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="#">Supine</a>
+        <a href="#">Staff</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <a href="https://drive.google.com/open?id=1pr1c58AEd1MA4uuXehp9ME8rwiH36dIN&usp=drive_copy">
+        <img src="FullBack.jpg" alt="" />
+      </a>
+      <div class="tags">
+        <a href="#">Full</a>
+        <a href="#">Back</a>
+      </div>
+    </div> -->
+
   </div>
 
 </body>
+
 </html>
