@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bird Notes</title>
+    <style>
+        body {
+            background: #222;
+            color: white;
+            font-family: sans-serif;
+            margin: 20px 50px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .item img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+            cursor: pointer;
+        }
+
+        .item-title {
+            margin-top: 6px;
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #overlay-content {
+            background: darkred;
+            padding: 20px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+        }
+
+        #overlay-header {
+            background: rgba(255, 215, 0, 0.15);
+            padding: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 0, 0.3);
+        }
+
+        #overlay-title {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: gold;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        #overlay-title:focus {
+            outline: none;
+        }
+
+        #overlay-text {
+            width: 100%;
+            min-height: 250px;
+            resize: none;
+            background: transparent;
+            color: yellow;
+            border: none;
+            font-size: 16px;
+            line-height: 1.5em;
+        }
+
+        #overlay-text:focus {
+            outline: none;
+        }
+
+        #saveBtn {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #555;
+            color: white;
+            cursor: pointer;
+        }
+
+        #saveBtn:hover {
+            background: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 style="text-align:center; margin-bottom:20px;">
+        <a href="index.html" style="color:white; text-decoration:none;">Back</a>
+    </h1>
+
+    <div class="grid">
+
+        <div class="item" data-id="yoga1" data-video="MW1R4nipHtk">
+            <a href="https://www.youtube.com/watch?v=MW1R4nipHtk">
+                <img src="https://img.youtube.com/vi/MW1R4nipHtk/hqdefault.jpg" alt="Video 1">
+            </a>
+            <div class="item-title">yoga#1</div>
+        </div>
+
+        <div class="item" data-id="yoga2" data-video="1qz7rZV0s-c">
+            <a href="https://www.youtube.com/watch?v=1qz7rZV0s-c">
+                <img src="https://img.youtube.com/vi/1qz7rZV0s-c/hqdefault.jpg" alt="Video 2">
+            </a>
+            <div class="item-title">yoga#2</div>
+        </div>
+
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+        <div id="overlay-content">
+            <div id="overlay-header">
+                <input type="text" id="overlay-title" placeholder="Title">
+            </div>
+            <textarea id="overlay-text" placeholder="Write your notes..."></textarea>
+            <button id="saveBtn">Save & Close</button>
+        </div>
+    </div>
+
+    <script>
+        const overlay = document.getElementById("overlay");
+        const overlayTitle = document.getElementById("overlay-title");
+        const overlayText = document.getElementById("overlay-text");
+        const saveBtn = document.getElementById("saveBtn");
+
+        let activeId = null;
+
+        // Load saved notes
+        const savedNotes = JSON.parse(localStorage.getItem("notes") || "{}");
+
+        // Open overlay on clicking the item title
+        document.querySelectorAll(".item-title").forEach(title => {
+            title.addEventListener("click", () => {
+                const item = title.closest(".item");
+                activeId = item.dataset.id;
+                overlay.style.display = "flex";
+
+                // Load saved data or default
+                overlayTitle.value = savedNotes[activeId]?.title || title.textContent;
+                overlayText.value = savedNotes[activeId]?.text || "";
+                overlayTitle.focus();
+            });
+        });
+
+        // Save button
+        saveBtn.addEventListener("click", () => {
+            if (activeId) {
+                savedNotes[activeId] = { title: overlayTitle.value, text: overlayText.value };
+                localStorage.setItem("notes", JSON.stringify(savedNotes));
+
+                // Update the item's title text
+                document.querySelector(`.item[data-id="${activeId}"] .item-title`).textContent = overlayTitle.value;
+            }
+            overlay.style.display = "none";
+        });
+
+        // Make sure video links open in same tab
+        document.querySelectorAll(".item a").forEach(link => link.removeAttribute("target"));
+    </script>
+
+</body>
+
+</html>

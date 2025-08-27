@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bird Notes</title>
+    <style>
+        body {
+            background: #222;
+            color: white;
+            font-family: sans-serif;
+            margin: 20px 50px;
+        }
+        h1{font-size:1em}
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .item,
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .item img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+            cursor: pointer;
+        }
+
+        .item-title,
+        .input-title {
+            margin-top: 6px;
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .input-item input {
+            width: 100%;
+            padding: 6px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .input-item button {
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: darkgreen;
+            color: gold;
+            font-size: 13px;
+        }
+
+        /* Overlay */
+        /* Overlay */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0); /* fully transparent behind */
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+#overlay-content {
+    background: #444; /* solid grey box */
+    padding: 20px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    color: #eee; /* slightly white font color */
+}
+
+#overlay-header {
+    background: rgba(255,255,255,0.05); /* subtle header shading */
+    padding: 5px;
+    text-align: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+#overlay-title {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: #eee;
+    font-size: 18px;
+    text-align: center;
+}
+
+#overlay-text {
+    width: 100%;
+    min-height: 250px;
+    resize: none;
+    background: transparent;
+    color: #eee;
+    border: none;
+    font-size: 16px;
+    line-height: 1.5em;
+}
+
+        #overlay-title:focus {
+            outline: none;
+        }
+
+        #overlay-text {
+            width: 100%;
+            min-height: 250px;
+            resize: none;
+            background: transparent;
+            color: rgb(224, 224, 212);
+            border: none;
+            font-size: 16px;
+            line-height: 1.5em;
+        }
+
+        #overlay-text:focus {
+            outline: none;
+        }
+
+        #saveBtn {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #555;
+            color: white;
+            cursor: pointer;
+        }
+
+        #saveBtn:hover {
+            background: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+   <h1 style="text-align:center; margin-bottom:20px;">
+       <a href="index.html" style="color:white; text-decoration:none;"> Bird Notes</a>
+   </h1>
+
+    <div class="grid" id="grid">
+        <!-- Input box -->
+        <div class="input-item" id="input-item">
+            <input type="text" id="video-url" placeholder="Paste YouTube URL">
+            <button id="add-video">Add</button>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+        <div id="overlay-content">
+            <div id="overlay-header">
+                <input type="text" id="overlay-title" placeholder="Title">
+            </div>
+            <textarea id="overlay-text" placeholder="Write your notes..."></textarea>
+            <button id="saveBtn">Save & Close</button>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById("grid");
+        const overlay = document.getElementById("overlay");
+        const overlayTitle = document.getElementById("overlay-title");
+        const overlayText = document.getElementById("overlay-text");
+        const saveBtn = document.getElementById("saveBtn");
+        const inputItem = document.getElementById("input-item");
+        const videoInput = document.getElementById("video-url");
+        const addBtn = document.getElementById("add-video");
+
+        let activeId = null;
+
+        // Load saved items
+        let savedNotes = JSON.parse(localStorage.getItem("notes") || "{}");
+        let counter = parseInt(localStorage.getItem("counter") || "1");
+
+        // Helper to extract YouTube ID
+        function extractVideoID(url) {
+            let id = null;
+            try {
+                const u = new URL(url);
+                if (u.hostname.includes("youtube.com")) id = u.searchParams.get("v");
+                else if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+            } catch (e) { return null; }
+            return id;
+        }
+
+        // Function to create item HTML
+        function createItem(id, videoID, titleText, prepend = false) {
+            const itemDiv = document.createElement("div");
+            itemDiv.classList.add("item");
+            itemDiv.dataset.id = id;
+            itemDiv.dataset.video = videoID;
+
+            const a = document.createElement("a");
+            a.href = `https://www.youtube.com/watch?v=${videoID}`;
+
+            const img = document.createElement("img");
+            img.src = `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`;
+            a.appendChild(img);
+
+            const titleDiv = document.createElement("div");
+            titleDiv.classList.add("item-title");
+            titleDiv.textContent = titleText;
+
+            itemDiv.appendChild(a);
+            itemDiv.appendChild(titleDiv);
+
+            if (prepend) {
+                grid.insertBefore(itemDiv, inputItem);
+            } else {
+                grid.insertBefore(itemDiv, inputItem);
+            }
+
+            // Overlay
+            titleDiv.addEventListener("click", () => {
+                activeId = id;
+                overlay.style.display = "flex";
+                overlayTitle.value = savedNotes[id]?.title || titleText;
+                overlayText.value = savedNotes[id]?.text || "";
+                overlayTitle.focus();
+            });
+        }
+
+        // Rebuild grid from localStorage
+        for (let key in savedNotes) {
+            createItem(key, savedNotes[key].videoID, savedNotes[key].title, true);
+        }
+
+        // Add new video
+        addBtn.addEventListener("click", () => {
+            const url = videoInput.value.trim();
+            const videoID = extractVideoID(url);
+            if (!videoID) { alert("Invalid YouTube URL"); return; }
+
+            const id = "yoga" + counter;
+            const titleText = id;
+            counter++;
+            localStorage.setItem("counter", counter);
+
+            createItem(id, videoID, titleText, true);
+
+            savedNotes[id] = { title: titleText, text: "", videoID: videoID };
+            localStorage.setItem("notes", JSON.stringify(savedNotes));
+
+            videoInput.value = "";
+        });
+
+        // Save overlay
+        saveBtn.addEventListener("click", () => {
+            if (activeId) {
+                savedNotes[activeId] = { title: overlayTitle.value, text: overlayText.value, videoID: savedNotes[activeId].videoID };
+                localStorage.setItem("notes", JSON.stringify(savedNotes));
+                document.querySelector(`.item[data-id="${activeId}"] .item-title`).textContent = overlayTitle.value;
+            }
+            overlay.style.display = "none";
+        });
+    </script>
+
+</body>
+
+</html>
