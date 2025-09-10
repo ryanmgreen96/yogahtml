@@ -12,7 +12,10 @@
             font-family: sans-serif;
             margin: 20px 50px;
         }
-        h1{font-size:1em}
+
+        h1 {
+            font-size: 1em
+        }
 
         .grid {
             display: grid;
@@ -63,57 +66,43 @@
             font-size: 13px;
         }
 
-        /* Overlay */
-        /* Overlay */
-#overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0); /* fully transparent behind */
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
 
-#overlay-content {
-    background: #444; /* solid grey box */
-    padding: 20px;
-    border-radius: 12px;
-    width: 500px;
-    max-width: 90%;
-    color: #eee; /* slightly white font color */
-}
+        #overlay-content {
+            background: #444;
+            padding: 20px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+            color: #eee;
+        }
 
-#overlay-header {
-    background: rgba(255,255,255,0.05); /* subtle header shading */
-    padding: 5px;
-    text-align: center;
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-}
+        #overlay-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-#overlay-title {
-    width: 100%;
-    border: none;
-    background: transparent;
-    color: #eee;
-    font-size: 18px;
-    text-align: center;
-}
-
-#overlay-text {
-    width: 100%;
-    min-height: 250px;
-    resize: none;
-    background: transparent;
-    color: #eee;
-    border: none;
-    font-size: 16px;
-    line-height: 1.5em;
-}
-
-        #overlay-title:focus {
-            outline: none;
+        #overlay-title {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #eee;
+            font-size: 18px;
+            text-align: center;
         }
 
         #overlay-text {
@@ -121,12 +110,13 @@
             min-height: 250px;
             resize: none;
             background: transparent;
-            color: rgb(224, 224, 212);
+            color: #eee;
             border: none;
             font-size: 16px;
             line-height: 1.5em;
         }
 
+        #overlay-title:focus,
         #overlay-text:focus {
             outline: none;
         }
@@ -149,9 +139,9 @@
 
 <body>
 
-   <h1 style="text-align:center; margin-bottom:20px;">
-       <a href="index.html" style="color:white; text-decoration:none;"> Bird Notes</a>
-   </h1>
+    <h1 style="text-align:center; margin-bottom:20px;">
+        <a href="index.html" style="color:white; text-decoration:none;"> Bird Notes</a>
+    </h1>
 
     <div class="grid" id="grid">
         <!-- Input box -->
@@ -172,7 +162,25 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdzIu5PwO5KiZmdFCNCOvJY1R6JHgkKjM",
+            authDomain: "birdfood-fda27.firebaseapp.com",
+            projectId: "birdfood-fda27",
+            storageBucket: "birdfood-fda27.firebasestorage.app",
+            messagingSenderId: "340792097507",
+            appId: "1:340792097507:web:f151f0076517cc2e0323d6"
+        };
+
+        // Init Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const grid = document.getElementById("grid");
         const overlay = document.getElementById("overlay");
         const overlayTitle = document.getElementById("overlay-title");
@@ -184,11 +192,7 @@
 
         let activeId = null;
 
-        // Load saved items
-        let savedNotes = JSON.parse(localStorage.getItem("notes") || "{}");
-        let counter = parseInt(localStorage.getItem("counter") || "1");
-
-        // Helper to extract YouTube ID
+        // Extract YouTube ID
         function extractVideoID(url) {
             let id = null;
             try {
@@ -199,8 +203,8 @@
             return id;
         }
 
-        // Function to create item HTML
-        function createItem(id, videoID, titleText, prepend = false) {
+        // Create item
+        function createItem(id, videoID, titleText) {
             const itemDiv = document.createElement("div");
             itemDiv.classList.add("item");
             itemDiv.dataset.id = id;
@@ -208,6 +212,7 @@
 
             const a = document.createElement("a");
             a.href = `https://www.youtube.com/watch?v=${videoID}`;
+            a.target = "_blank";
 
             const img = document.createElement("img");
             img.src = `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`;
@@ -219,52 +224,58 @@
 
             itemDiv.appendChild(a);
             itemDiv.appendChild(titleDiv);
+            grid.insertBefore(itemDiv, inputItem);
 
-            if (prepend) {
-                grid.insertBefore(itemDiv, inputItem);
-            } else {
-                grid.insertBefore(itemDiv, inputItem);
-            }
-
-            // Overlay
-            titleDiv.addEventListener("click", () => {
+            titleDiv.addEventListener("click", async () => {
                 activeId = id;
                 overlay.style.display = "flex";
-                overlayTitle.value = savedNotes[id]?.title || titleText;
-                overlayText.value = savedNotes[id]?.text || "";
+                const noteDoc = await getDoc(doc(db, "notes", id));
+                if (noteDoc.exists()) {
+                    const data = noteDoc.data();
+                    overlayTitle.value = data.title || titleText;
+                    overlayText.value = data.text || "";
+                }
                 overlayTitle.focus();
             });
         }
 
-        // Rebuild grid from localStorage
-        for (let key in savedNotes) {
-            createItem(key, savedNotes[key].videoID, savedNotes[key].title, true);
+        // Load notes from Firestore
+        async function loadNotes() {
+            const snapshot = await getDocs(collection(db, "notes"));
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                createItem(docSnap.id, data.videoID, data.title);
+            });
         }
+        loadNotes();
 
         // Add new video
-        addBtn.addEventListener("click", () => {
+        addBtn.addEventListener("click", async () => {
             const url = videoInput.value.trim();
             const videoID = extractVideoID(url);
             if (!videoID) { alert("Invalid YouTube URL"); return; }
 
-            const id = "yoga" + counter;
+            const id = `note_${Date.now()}`;
             const titleText = id;
-            counter++;
-            localStorage.setItem("counter", counter);
 
-            createItem(id, videoID, titleText, true);
+            await setDoc(doc(db, "notes", id), {
+                title: titleText,
+                text: "",
+                videoID: videoID
+            });
 
-            savedNotes[id] = { title: titleText, text: "", videoID: videoID };
-            localStorage.setItem("notes", JSON.stringify(savedNotes));
-
+            createItem(id, videoID, titleText);
             videoInput.value = "";
         });
 
         // Save overlay
-        saveBtn.addEventListener("click", () => {
+        saveBtn.addEventListener("click", async () => {
             if (activeId) {
-                savedNotes[activeId] = { title: overlayTitle.value, text: overlayText.value, videoID: savedNotes[activeId].videoID };
-                localStorage.setItem("notes", JSON.stringify(savedNotes));
+                await setDoc(doc(db, "notes", activeId), {
+                    title: overlayTitle.value,
+                    text: overlayText.value,
+                    videoID: document.querySelector(`.item[data-id="${activeId}"]`).dataset.video
+                });
                 document.querySelector(`.item[data-id="${activeId}"] .item-title`).textContent = overlayTitle.value;
             }
             overlay.style.display = "none";

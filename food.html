@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Inventory</title>
+  <style>
+    body {
+      background-color: #3B1F0E;
+      color: #FFD700;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 800px;
+      align-items: center;
+    }
+
+    #notes {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 1em;
+      border: 2px solid #FFD700;
+      background-color: #5A3320;
+      color: #FFD700;
+      border-radius: 4px;
+    }
+
+    button {
+      width: 30px;
+      height: 30px;
+      font-size: 1em;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button#reset-all {
+      background-color: #228B22;
+    }
+
+    button#reset-text {
+      background-color: #B22222;
+    }
+
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 800px;
+      overflow-y: auto;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 150px;
+      flex: 1;
+    }
+
+    .box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #FFD700;
+      cursor: pointer;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .red {
+      background-color: #B22222;
+    }
+
+    .blue {
+  background-color: #1E90FF; /* dodger blue */
+}
+
+
+    .green {
+      background-color: #228B22;
+    }
+
+    .yellow {
+      background-color: #CCCC00;
+    }
+
+    .blank {
+      background-color: transparent;
+      border: 2px solid #FFD700;
+    }
+
+    a {
+      text-decoration: none
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2><a href="/index.html">food</a></h2>
+  <div class="controls">
+    <button id="reset-all"></button>
+    <input type="text" id="notes" placeholder="Write something..." />
+    <button id="reset-text"></button>
+  </div>
+
+  <div class="grid" id="food-grid"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdzIu5PwO5KiZmdFCNCOvJY1R6JHgkKjM",
+      authDomain: "birdfood-fda27.firebaseapp.com",
+      projectId: "birdfood-fda27",
+      storageBucket: "birdfood-fda27.firebasestorage.app",
+      messagingSenderId: "340792097507",
+      appId: "1:340792097507:web:f151f0076517cc2e0323d6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const FOOD_LIST = [
+      ["Kale", "flax"],
+      ["Oranges", "Margarine"],
+      ["Craisins", "lemon"],
+      ["big nuts", "lime"],
+      ["Soy", "Bread"],
+      ["bananas", "Bagels"],
+      ["kale", "Potatoes"],
+      ["Berries", "Popcorn"],
+      ["Fried", "Sweet"],
+
+      // all $ items at the bottom
+      ["Barley$", "Qunioa$"],
+      ["corn$", "lentils$"]
+    ];
+
+   const STATES = ["green", "red"];
+    const BLUE_STATES = ["blank", "blue"]; // replaces yellow cycle for $ inner boxes
+
+
+    const grid = document.getElementById("food-grid");
+    const notes = document.getElementById("notes");
+    const resetAllBtn = document.getElementById("reset-all");
+    const resetTextBtn = document.getElementById("reset-text");
+
+    // Helpers
+    function createBox(key, states, defaultState) {
+      const box = document.createElement("div");
+      box.className = "box " + key; // include key in class for lookup
+      let savedState = defaultState;
+      box.classList.add(savedState);
+      box.onclick = () => {
+        const current = states.indexOf(states.find(s => box.classList.contains(s)));
+        const next = (current + 1) % states.length;
+        box.classList.remove(...states);
+        box.classList.add(states[next]);
+        saveState(key, states[next]);
+      };
+      return box;
+    }
+
+    function createCell(name, isLeft) {
+      const isDollar = name.includes("$");
+      const clean = name.replace("$", "").trim();
+      const outerKey = "outer_" + clean.toLowerCase();
+      const innerKey = "inner_" + clean.toLowerCase();
+
+      const cell = document.createElement("div");
+      cell.className = "cell";
+
+      if (isDollar && isLeft) {
+        cell.appendChild(createBox(outerKey, STATES, "green"));
+        cell.appendChild(createBox(innerKey, BLUE_STATES, "blank"));
+        const label = document.createElement("span");
+        label.textContent = clean;
+        cell.appendChild(label);
+      } else if (isDollar && !isLeft) {
+        const label = document.createElement("span");
+        label.textContent = clean;
+        cell.appendChild(label);
+        cell.appendChild(createBox(innerKey, BLUE_STATES, "blank"));
+        cell.appendChild(createBox(outerKey, STATES, "green"));
+      } else {
+        if (isLeft) cell.appendChild(createBox(outerKey, STATES, "green"));
+        const label = document.createElement("span");
+        label.textContent = clean;
+        cell.appendChild(label);
+        if (!isLeft) cell.appendChild(createBox(outerKey, STATES, "green"));
+      }
+      return cell;
+    }
+
+    // Build grid
+    function buildGrid() {
+      FOOD_LIST.forEach(pair => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.appendChild(createCell(pair[0], true));
+        row.appendChild(createCell(pair[1], false));
+        grid.appendChild(row);
+      });
+    }
+
+    // Collect current box states
+    function collectBoxStates() {
+      const boxes = {};
+      document.querySelectorAll(".box").forEach(box => {
+        const key = Array.from(box.classList).find(c => c.startsWith("outer_") || c.startsWith("inner_"));
+        if (key) {
+          const state = Array.from(box.classList).find(c => STATES.concat(YELLOW_STATES).includes(c));
+          boxes[key] = state;
+        }
+      });
+      return boxes;
+    }
+
+    // Save a single key
+    async function saveState(key, value) {
+      const currentData = await loadData("food");
+      const boxes = currentData.boxes || {};
+      boxes[key] = value;
+      await saveData("food", { boxes, notes_value: notes.value });
+    }
+
+    // Firebase wrappers
+    async function loadData(docId) {
+      try {
+        const docRef = doc(db, "food_inventory", docId);
+        const snap = await getDoc(docRef);
+        return snap.exists() ? snap.data() : {};
+      } catch (err) {
+        console.error("❌ loadData failed:", err);
+        return {};
+      }
+    }
+
+    async function saveData(docId, data) {
+      try {
+        const docRef = doc(db, "food_inventory", docId);
+        await setDoc(docRef, data, { merge: true });
+        console.log("✅ Data saved:", docId, data);
+      } catch (err) {
+        console.error("❌ saveData failed:", err);
+      }
+    }
+
+    // Reset buttons
+    resetTextBtn.onclick = () => {
+      notes.value = "";
+      saveData("food", { boxes: collectBoxStates(), notes_value: "" });
+    };
+
+    resetAllBtn.onclick = () => {
+        // Build fresh state (all greens, blanks for yellow slots)
+        const newBoxes = {};
+        FOOD_LIST.forEach(pair => {
+          pair.forEach(name => {
+            const clean = name.replace("$", "").trim().toLowerCase();
+            if (name.includes("$")) {
+              newBoxes["outer_" + clean] = "green";
+              newBoxes["inner_" + clean] = "blank";
+            } else {
+              newBoxes["outer_" + clean] = "green";
+            }
+          });
+        });
+
+        // Save to Firestore
+        saveData("food", { boxes: newBoxes, notes_value: "" });
+
+        // Update UI immediately
+        notes.value = "";
+        document.querySelectorAll(".box").forEach(box => {
+          box.classList.remove("red", "green", "yellow", "blank");
+          if (box.classList.contains("inner_")) {
+            box.classList.add("blank");
+          } else {
+            box.classList.add("green");
+          }
+        });
+      };
+
+
+    // Load from Firestore
+    loadData("food").then(data => {
+      notes.value = data.notes_value || "";
+      const boxesData = data.boxes || {};
+      Object.keys(boxesData).forEach(key => {
+        const box = document.querySelector(`.box.${key}`);
+        if (box) {
+          box.classList.remove(...STATES, ...YELLOW_STATES);
+          box.classList.add(boxesData[key]);
+        }
+      });
+    });
+
+    // Save notes on input
+    notes.addEventListener("input", () => {
+      saveData("food", { boxes: collectBoxStates(), notes_value: notes.value });
+    });
+
+    // Build grid initially
+    buildGrid();
+  </script>
+
+</body>
+
+</html>
