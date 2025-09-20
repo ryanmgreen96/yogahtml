@@ -128,23 +128,26 @@
 
   <div class="grid" id="food-grid"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-    // Firebase config
+  <script type="module">
+    // Firebase v12.3.0 SDK imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // ✅ Use your new Firebase project
     const firebaseConfig = {
-      apiKey: "AIzaSyCdzIu5PwO5KiZmdFCNCOvJY1R6JHgkKjM",
-      authDomain: "birdfood-fda27.firebaseapp.com",
-      projectId: "birdfood-fda27",
-      storageBucket: "birdfood-fda27.firebasestorage.app",
-      messagingSenderId: "340792097507",
-      appId: "1:340792097507:web:f151f0076517cc2e0323d6"
+      apiKey: "AIzaSyDcGxGdGqCdpqpSp3lL9_UHaoRKQ2PrXSQ",
+      authDomain: "food-c45ed.firebaseapp.com",
+      projectId: "food-c45ed",
+      storageBucket: "food-c45ed.firebasestorage.app",
+      messagingSenderId: "1048735903914",
+      appId: "1:1048735903914:web:257dcd44741ff6cd90a0d3"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // === App Data ===
     const FOOD_LIST = [
       ["Kale", "flax"],
       ["Oranges", "Margarine"],
@@ -156,28 +159,26 @@
       ["Berries", "Popcorn"],
       ["Fried", "Sweet"],
 
-      // all $ items at the bottom
+      // $ items at the bottom
       ["Barley$", "Qunioa$"],
       ["corn$", "lentils$"]
     ];
 
-   const STATES = ["green", "red"];
-    const BLUE_STATES = ["blank", "blue"]; // replaces yellow cycle for $ inner boxes
-
+    const STATES = ["green", "red"];
+    const BLUE_STATES = ["blank", "blue"]; // special cycle for $ inner boxes
 
     const grid = document.getElementById("food-grid");
     const notes = document.getElementById("notes");
     const resetAllBtn = document.getElementById("reset-all");
     const resetTextBtn = document.getElementById("reset-text");
 
-    // Helpers
+    // === Helpers ===
     function createBox(key, states, defaultState) {
       const box = document.createElement("div");
-      box.className = "box " + key; // include key in class for lookup
-      let savedState = defaultState;
-      box.classList.add(savedState);
+      box.className = "box " + key;
+      box.classList.add(defaultState);
       box.onclick = () => {
-        const current = states.indexOf(states.find(s => box.classList.contains(s)));
+        const current = states.findIndex(s => box.classList.contains(s));
         const next = (current + 1) % states.length;
         box.classList.remove(...states);
         box.classList.add(states[next]);
@@ -198,26 +199,19 @@
       if (isDollar && isLeft) {
         cell.appendChild(createBox(outerKey, STATES, "green"));
         cell.appendChild(createBox(innerKey, BLUE_STATES, "blank"));
-        const label = document.createElement("span");
-        label.textContent = clean;
-        cell.appendChild(label);
+        cell.appendChild(document.createTextNode(clean));
       } else if (isDollar && !isLeft) {
-        const label = document.createElement("span");
-        label.textContent = clean;
-        cell.appendChild(label);
+        cell.appendChild(document.createTextNode(clean));
         cell.appendChild(createBox(innerKey, BLUE_STATES, "blank"));
         cell.appendChild(createBox(outerKey, STATES, "green"));
       } else {
         if (isLeft) cell.appendChild(createBox(outerKey, STATES, "green"));
-        const label = document.createElement("span");
-        label.textContent = clean;
-        cell.appendChild(label);
+        cell.appendChild(document.createTextNode(clean));
         if (!isLeft) cell.appendChild(createBox(outerKey, STATES, "green"));
       }
       return cell;
     }
 
-    // Build grid
     function buildGrid() {
       FOOD_LIST.forEach(pair => {
         const row = document.createElement("div");
@@ -228,33 +222,32 @@
       });
     }
 
-    // Collect current box states
     function collectBoxStates() {
       const boxes = {};
       document.querySelectorAll(".box").forEach(box => {
-        const key = Array.from(box.classList).find(c => c.startsWith("outer_") || c.startsWith("inner_"));
+        const key = Array.from(box.classList).find(c =>
+          c.startsWith("outer_") || c.startsWith("inner_")
+        );
         if (key) {
-          const state = Array.from(box.classList).find(c => STATES.concat(YELLOW_STATES).includes(c));
+          const state = Array.from(box.classList).find(c =>
+            [...STATES, ...BLUE_STATES].includes(c)
+          );
           boxes[key] = state;
         }
       });
       return boxes;
     }
 
-    // Save a single key
-    async function saveState(key, value) {
-      const currentData = await loadData("food");
-      const boxes = currentData.boxes || {};
-      boxes[key] = value;
-      await saveData("food", { boxes, notes_value: notes.value });
-    }
-
-    // Firebase wrappers
+    // === Firestore Helpers ===
     async function loadData(docId) {
       try {
         const docRef = doc(db, "food_inventory", docId);
         const snap = await getDoc(docRef);
-        return snap.exists() ? snap.data() : {};
+        if (snap.exists()) {
+          console.log("📥 Loaded from Firestore:", snap.data());
+          return snap.data();
+        }
+        return {};
       } catch (err) {
         console.error("❌ loadData failed:", err);
         return {};
@@ -265,69 +258,69 @@
       try {
         const docRef = doc(db, "food_inventory", docId);
         await setDoc(docRef, data, { merge: true });
-        console.log("✅ Data saved:", docId, data);
+        console.log("✅ Saved to Firestore:", data);
       } catch (err) {
         console.error("❌ saveData failed:", err);
       }
     }
 
-    // Reset buttons
+    async function saveState(key, value) {
+      const currentData = await loadData("food");
+      const boxes = currentData.boxes || {};
+      boxes[key] = value;
+      await saveData("food", { boxes, notes_value: notes.value });
+    }
+
+    // === Reset buttons ===
     resetTextBtn.onclick = () => {
       notes.value = "";
       saveData("food", { boxes: collectBoxStates(), notes_value: "" });
     };
 
     resetAllBtn.onclick = () => {
-        // Build fresh state (all greens, blanks for yellow slots)
-        const newBoxes = {};
-        FOOD_LIST.forEach(pair => {
-          pair.forEach(name => {
-            const clean = name.replace("$", "").trim().toLowerCase();
-            if (name.includes("$")) {
-              newBoxes["outer_" + clean] = "green";
-              newBoxes["inner_" + clean] = "blank";
-            } else {
-              newBoxes["outer_" + clean] = "green";
-            }
-          });
-        });
-
-        // Save to Firestore
-        saveData("food", { boxes: newBoxes, notes_value: "" });
-
-        // Update UI immediately
-        notes.value = "";
-        document.querySelectorAll(".box").forEach(box => {
-          box.classList.remove("red", "green", "yellow", "blank");
-          if (box.classList.contains("inner_")) {
-            box.classList.add("blank");
+      const newBoxes = {};
+      FOOD_LIST.forEach(pair => {
+        pair.forEach(name => {
+          const clean = name.replace("$", "").trim().toLowerCase();
+          if (name.includes("$")) {
+            newBoxes["outer_" + clean] = "green";
+            newBoxes["inner_" + clean] = "blank";
           } else {
-            box.classList.add("green");
+            newBoxes["outer_" + clean] = "green";
           }
         });
-      };
+      });
+      saveData("food", { boxes: newBoxes, notes_value: "" });
 
+      notes.value = "";
+      document.querySelectorAll(".box").forEach(box => {
+        box.classList.remove("red", "green", "blue", "blank");
+        if (box.classList.contains("inner_")) {
+          box.classList.add("blank");
+        } else {
+          box.classList.add("green");
+        }
+      });
+    };
 
-    // Load from Firestore
+    // === Init ===
+    buildGrid(); // build first
+
     loadData("food").then(data => {
       notes.value = data.notes_value || "";
       const boxesData = data.boxes || {};
       Object.keys(boxesData).forEach(key => {
         const box = document.querySelector(`.box.${key}`);
         if (box) {
-          box.classList.remove(...STATES, ...YELLOW_STATES);
+          box.classList.remove(...STATES, ...BLUE_STATES);
           box.classList.add(boxesData[key]);
         }
       });
     });
 
-    // Save notes on input
     notes.addEventListener("input", () => {
       saveData("food", { boxes: collectBoxStates(), notes_value: notes.value });
     });
-
-    // Build grid initially
-    buildGrid();
   </script>
 
 </body>
